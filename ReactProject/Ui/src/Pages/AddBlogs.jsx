@@ -4,30 +4,35 @@ import { useNavigate } from 'react-router-dom';
 const AddBlogs = () => {
     const [Name, setName] = useState('');
     const [Email, setEmail] = useState('');
-    const [Category, setCategory] = useState('');
+    const [Cateogry, setCategory] = useState('');
     const [Location, setLocation] = useState('');
     const [BlogDate, setBlogDate] = useState(''); // Renamed state for date
     const [Blog, setBlog] = useState('');
     const [Blogid, setBlogid] = useState('');
 
     const navigate = useNavigate();
-    
-    // Set the current date when the component mounts
+    let now = Date()
     useEffect(() => {
-        const currentDate = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+        const now = new Date();
+        const currentDate = now.toISOString().split('T')[0];
         setBlogDate(currentDate);
-
-        // Generate a unique blogId (timestamp + random number)
-        const uniqueBlogId = `blog-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    
+        const uniqueBlogId = 'blog-'
+            + now.getFullYear()
+            + String(now.getMonth() + 1).padStart(2, '0')
+            + String(now.getDate()).padStart(2, '0')
+            + String(now.getHours()).padStart(2, '0')
+            + String(now.getMinutes()).padStart(2, '0')
+            + String(now.getSeconds()).padStart(2, '0')
+            + String(now.getMilliseconds()).padStart(3, '0');
         setBlogid(uniqueBlogId);
     }, []);
-    
     const SubmitForm = async (e) => {
         e.preventDefault();
         const newBlog = {
             Name,
             Email,
-            Category,
+            Cateogry,
             Location,
             Date: BlogDate, // Updated to use BlogDate
             Blog,
@@ -43,7 +48,7 @@ const AddBlogs = () => {
                 body: JSON.stringify(newBlog),
             });
             console.log(newBlog);
-            
+
             if (response.ok) {
                 alert('Blog Added Successfully');
                 setName('');
@@ -102,7 +107,7 @@ const AddBlogs = () => {
                                 type="text"
                                 placeholder="Enter Category"
                                 required
-                                value={Category}
+                                value={Cateogry}
                                 className="w-64 border-2 hover:border-black"
                                 onChange={(e) => setCategory(e.target.value)}
                             />

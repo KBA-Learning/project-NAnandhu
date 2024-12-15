@@ -45,7 +45,7 @@ const BlogCard = ({ items }) => {
                     </div>
                     <div className="m-2">
                         <p className="font-bold">Name: {items.name || 'Anonymous'}</p>
-                        <p>Category: {items.cateogry || 'Uncategorized'}</p>
+                        <p>Category: {items.cateogry|| 'Uncategorized'}</p>
                         <p>Latest Update: {items.date || 'N/A'}</p>
                         <p>Location: {items.location || 'Unknown'}</p>
                         <Link href="/comment" className="text-sky-500">

@@ -24,8 +24,8 @@ const BlogDetails = new mongoose.Schema({
     location: String,
     blogid: { type: String, unique: true },
     date: String,
-    blog: String, 
-    
+    blog: String,
+
 })
 const User = mongoose.model('UserDetais', userSchema)
 const Blogs = mongoose.model('BlogDetails', BlogDetails)
@@ -92,11 +92,11 @@ Route.post('/login', async (req, res) => {
                 res.cookie('authToken', token, {
                     httpOnly: true
                 });
-                res.status(200).json({ message: "Login Succesfully",result })
+                res.status(200).json({ message: "Login Succesfully", result })
             }
             else {
 
-                res.status(403).json({ Message: "Password Is Correct" })
+                res.status(403).json({ Message: "Password InCorrect" })
             }
 
         }
@@ -111,7 +111,7 @@ Route.post('/login', async (req, res) => {
 })
 Route.post('/addblog', async (req, res) => {
     const data = req.body
-    const { 
+    const {
         Name,
         Email,
         Cateogry,
@@ -119,7 +119,7 @@ Route.post('/addblog', async (req, res) => {
         Date,
         Blog,
         Blogid,
-     } = data
+    } = data
     // console.log(Name)
     console.log(Cateogry)
 
@@ -146,97 +146,113 @@ Route.post('/addblog', async (req, res) => {
 
     }
 })
-Route.patch('/update', async (req, res) => {
-    const data = req.body
-    const { BlogId,
+
+Route.patch('/update/:id', async (req, res) => {
+    const BlogId = req.params.id;
+    const {
         newName,
         newEmail,
         newCategory,
         newLocation,
         newDate,
-        newBlog} = data
+        newBlog
+    } = req.body;
 
-        const result = await Blogs.findOneAndUpdate({blogid:BlogId})
+    console.log("BlogId:", BlogId, "Data:", req.body);
 
-        if(result){
-            result.name=newName || result.name
-            result.email=newEmail || result.email
-            result.cateogry=newCategory || result.cateogry
-            result.location=newLocation || result.location
-            result.date=newDate || result.date
-            result.blog=newBlog || result.blog
-            await result.save()
-            res.status(200).json({message:"Blog Updated Succesfully"})
-            console.log(result);
-            
-        
-        }
-        else{
-            res.status(400).json({message:"Blog NotFound"})
-        }
-})
-//Search Bar
-Route.get('/search/:data',async (req, res) => {
     try {
-        const { data } = req.params; 
+        
+        const result = await Blogs.findOneAndUpdate(
+            { blogid: BlogId }, 
+            {
+                $set: {
+                    name: newName,
+                    email: newEmail,
+                    category: newCategory, 
+                    location: newLocation,
+                    date: newDate,
+                    blog: newBlog
+                }
+            },
+            { new: true, runValidators: true } 
+        );
+
+        if (result) {
+            res.status(200).json({ message: "Blog Updated Successfully", updatedBlog: result });
+            console.log("Updated Blog:", result);
+        } else {
+            res.status(404).json({ message: "Blog Not Found" });
+        }
+    } catch (error) {
+        console.error("Error updating blog:", error.message);
+        res.status(500).json({ message: "Internal Server Error", error: error.message });
+    }
+});
+
+
+
+//Search Bar
+Route.get('/search/:data', async (req, res) => {
+    try {
+        const { data } = req.params;
         if (data) {
             const result = await Blogs.find({
                 $or: [
                     { name: data },
-                    { location: data},
-                    { cateogry:data}
+                    { location: data },
+                    { cateogry: data }
                 ]
-            });                      
+            });
             res.status(200).json(result);
         } else {
-            res.status(400).json({message:'Not Found'});
+            res.status(400).json({ message: 'Not Found' });
         }
     } catch (err) {
-        res.status(500).json({message:"Server Error"})
+        res.status(500).json({ message: "Server Error" })
     }
 });
 //Delete
-Route.delete('/detele/:id',async(req,res)=>{
-    const Id =req.params.id
+Route.delete('/detele/:id', async (req, res) => {
+    const Id = req.params.id
 
-    const result=await Blogs.findOneAndDelete({blogid:Id})
+    const result = await Blogs.findOneAndDelete({ blogid: Id })
 
-    if(result){
-        res.status(200).json({message:"Blog Detele succesFully"})
-        
-    }else{
-        res.status(400).json({message:"Blog NotFound"})
+    if (result) {
+        res.status(200).json({ message: "Blog Detele succesFully" })
+
+    } else {
+        res.status(400).json({ message: "Blog NotFound" })
     }
 
 })
 //Admin Delete user name
-Route.delete('/removeuser/:name',async(req,res)=>{
-    const Name =req.params.name
+Route.delete('/removeuser/:name', async (req, res) => {
+    const Name = req.params.name
 
-    const result=await User.findOneAndDelete({userName:Name})
+    const result = await User.findOneAndDelete({ userName: Name })
 
-    if(result){
-        res.status(200).json({message:"User Detele succesFully"})
-        
-    }else{
-        res.status(400).json({message:"User NotFound"})
+    if (result) {
+        res.status(200).json({ message: "User Detele succesFully" })
+
+    } else {
+        res.status(400).json({ message: "User NotFound" })
     }
 
 })
 Route.post('/addcomment', async (req, res) => {
-    const data=req.body
-    const { BlogId,Name,Comment,date } = data
+    const data = req.body
+    const { BlogId, Name, Comment, date } = data
 
-    const result= await Blogs.findOne({blogid:BlogId})
-         
-        
+    const result = await Blogs.findOne({ blogid: BlogId })
+
+
     console.log(result)
 
-    if(result){
-        res.status(200).json({message:"Comment added",Name,Comment,date})
-       
-    }else{
-        res.status(400).json({message:"Blog NotFound"})
+    if (result) {
+        res.status(200).json({ message: "Comment added", Name, Comment, date })
+
+    } else {
+        res.status(400).json({ message: "Blog NotFound" })
     }
 })
 // Route.get('/viewUser/:name',authenticate,async(req,res)=>{
@@ -253,60 +269,60 @@ Route.post('/addcomment', async (req, res) => {
 //     }else{
 //         res.status(400).json({message:"User Is  Not Admin"})
 //     }
-    
+
 //   } catch (error) {
 //        res.status(500).json({message:"Server Error"})
-    
+
 //   }
 
 
 // })
 //Check Role for Dash
-Route.get('/checkrole',authenticate,(req,res)=>{
-    const result=req.Role
-    if(result){
+Route.get('/checkrole', authenticate,(req, res) => {
+    const result = req.Role
+    if (result) {
         res.json(result);
-    }else{
-        res.status(400).json({message:"Error"})
+    } else {
+        res.status(400).json({ message: "Error" })
     }
 
 })
-Route.get('/checkuser',authenticate,(req,res)=>{
-    const result=req.UserName
-    if(result){
+Route.get('/checkuser', authenticate, (req, res) => {
+    const result = req.UserName
+    if (result) {
         res.json(result);
-    }else{
-        res.status(400).json({message:"Error"})
+    } else {
+        res.status(400).json({ message: "Error" })
     }
 
 })
 //Grid view Blogs
-Route.get('/ViewBlogs',async(req,res)=>{
-    const blogdata= await Blogs.find({})
-    if(blogdata){
-        res.status(200).json({message:'Blog Lists Are Added',blogdata})
-    }else{
-        res.status(400).json({message:'Blogs Not Found'})
+Route.get('/ViewBlogs', async (req, res) => {
+    const blogdata = await Blogs.find({})
+    if (blogdata) {
+        res.status(200).json({ message: 'Blog Lists Are Added', blogdata })
+    } else {
+        res.status(400).json({ message: 'Blogs Not Found' })
     }
 
 
 })
 //Admin view Blog
-Route.get('/adminBlogs/:id',async(req,res)=>{
-    const id = req.params.id;   
-    const blogdata= await Blogs.findOne({blogid:id})
-    if(blogdata){
-        res.status(200).json({message:'Blog Lists Are Added',blogdata})
-    }else{
-        res.status(400).json({message:'Blogs Not Found'})
+Route.get('/adminBlogs/:id', async (req, res) => {
+    const id = req.params.id;
+    const blogdata = await Blogs.findOne({ blogid: id })
+    if (blogdata) {
+        res.status(200).json({ message: 'Blog Lists Are Added', blogdata })
+    } else {
+        res.status(400).json({ message: 'Blogs Not Found' })
     }
 
 
 })
 //Display all User in Admin Dash
-Route.get('/viewAllUser',async(req,res)=>{
-    const Alluser= await User.find({})
-    res.status(200).json({message:"Success",Alluser})
+Route.get('/viewAllUser', async (req, res) => {
+    const Alluser = await User.find({})
+    res.status(200).json({ message: "Success", Alluser })
 })
 //logout 
 Route.post('/logout', (req, res) => {
@@ -321,12 +337,27 @@ Route.post('/logout', (req, res) => {
 
 //     if(result){
 //         res.status(200).json({message:"success result",result})
-        
+
 //     }else{
 //         res.status(400).json({message:"Blog NotFound"})
 //     }
 
 // })
+Route.get('/adminBlogs', async (req, res) => {
+    // const Name =req.params.name
+
+    const result = await Blogs.find({})
+
+    if (result) {
+        res.status(200).json({ message: "success result", result })
+
+    } else {
+        res.status(400).json({ message: "Blog NotFound" })
+    }
+
+})
+
+
 // Route.get('/',async(req,res)=>{
 //     const { data } = req.params;
 //     if(date){

@@ -6,6 +6,9 @@ const AdminHome = () => {
   const [loading, setLoading] = useState(false);
   const [showUsers, setShowUsers] = useState(false);
   const navigate = useNavigate();
+  const [blogs,setBlogs]=useState([]);
+  const [showblogs,setShowBlogs]=useState(false);
+
 
   const fetchUserDetails = async () => {
     setLoading(true);
@@ -30,6 +33,30 @@ const AdminHome = () => {
     fetchUserDetails();
   };
 
+  const fetchBlogs = async () => {
+    setLoading(true)
+    try {
+      const res = await fetch('/api/adminBlogs', {
+        method: 'GET'
+
+      })
+      if (!res.ok) {
+        throw new Error('Failed to fetch BlogDetails details');
+      }
+      const data = await res.json();
+      console.log(data.result)
+      setBlogs(data.result || []);
+    } catch (error) {
+      console.error('Error fetching blog details:', error);
+    } finally {
+      setLoading(false);
+    }
+  }
+  const handleShowBlogs = () => {
+    setShowBlogs(true)
+    fetchBlogs()
+
+  }
   const RemoveUser = async (username) => {
     try {
       const response = await fetch(`/api/removeuser/${username}`, {
@@ -79,6 +106,14 @@ const AdminHome = () => {
             Load Users
           </button>
         </div>
+        <div>
+          <button
+            className="bg-orange-500 text-white px-4 py-2 rounded hover:bg-orange-600"
+            onClick={handleShowBlogs}
+          >
+            Load Blogs
+          </button>
+        </div>
 
         {loading && <p className="text-center mt-5">Loading user details...</p>}
 
@@ -117,12 +152,48 @@ const AdminHome = () => {
           </div>
         )}
 
-        {showUsers && users.length === 0 && (
+        {showUsers && blogs.length === 0 && (
           <p className="text-center mt-5">No users found.</p>
         )}
       </div>
+      {showblogs && !loading && blogs.length>0 && (
+        <div className="user-list mt-5">
+            <h2 className="text-xl font-bold mb-3">All Blogs:</h2>
+            <table className="table-auto border-collapse border border-gray-200 w-full">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="border border-gray-300 px-4 py-2">Blog Name</th>
+                  <th className="border border-gray-300 px-4 py-2">Category</th>
+                  <th className="border border-gray-300 px-4 py-2">Location</th>
+                  <th className="border border-gray-300 px-4 py-2">Email</th>
+                  <th className="border border-gray-300 px-4 py-2">Blog</th>
+                  <th className="border border-gray-300 px-4 py-2">Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {blogs.map((blog, index) => (
+                   <tr key={blog.blogid} className="text-center">
+                   {/* <td className="border border-gray-300 px-4 py-2">{index + 1}</td> */}
+                   <td className="border border-gray-300 px-4 py-2">{blog.name || 'N/A'}</td>
+                   <td className="border border-gray-300 px-4 py-2">{blog.cateogry || 'N/A'}</td>
+                   <td className="border border-gray-300 px-4 py-2">{blog.location || 'N/A'}</td>
+                   <td className="border border-gray-300 px-4 py-2">{blog.email || 'N/A'}</td>
+                   <td className="border border-gray-300 px-4 py-2">{blog.blog || 'N/A'}</td>
+                   <td className="border border-gray-300 px-4 py-2">{blog.date|| 'N/A'}</td>
+                   {/* <td className="border border-gray-300 px-4 py-2">
+                    <button
+                        className="w-20 h-6 bg-red-500 hover:bg-red-600 text-white"
+                        onClick={() => RemoveUser(blogs.blogid)}>
+                        Remove
+                      </button>
+                    </td> */}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+      )}
     </>
   );
 };
-
 export default AdminHome;
